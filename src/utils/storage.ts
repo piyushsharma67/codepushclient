@@ -2,19 +2,17 @@ import { User } from '../services/authService';
 
 const STORAGE_KEYS = {
     TOKEN: '@auth_token',
+    TOKEN_EXPIRY: '@auth_token_expiry',
     USER: '@auth_user',
-    APP_ID: '@app_id',
-    APP_TOKEN: '@app_token',
 } as const;
 
 export const storage = {
     // Save authentication data
-    saveAuthData: (token: string, user: User) => {
+    saveAuthData: (token: string, expiresAt: string, user: User) => {
         try {
             localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+            localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, expiresAt);
             localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-            localStorage.setItem(STORAGE_KEYS.APP_ID, user.app_id);
-            localStorage.setItem(STORAGE_KEYS.APP_TOKEN, user.token);
         } catch (error) {
             console.error('Error saving auth data:', error);
             throw new Error('Failed to save authentication data');
@@ -25,19 +23,23 @@ export const storage = {
     getAuthData: () => {
         try {
             const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+            const tokenExpiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
             const userStr = localStorage.getItem(STORAGE_KEYS.USER);
-            const appId = localStorage.getItem(STORAGE_KEYS.APP_ID);
-            const appToken = localStorage.getItem(STORAGE_KEYS.APP_TOKEN);
 
-            if (!token || !userStr) {
+            if (!token || !userStr || !tokenExpiry) {
+                return null;
+            }
+
+            // Check if token is expired
+            if (new Date(tokenExpiry) < new Date()) {
+                storage.clearAuthData();
                 return null;
             }
 
             return {
                 token,
+                tokenExpiry,
                 user: JSON.parse(userStr),
-                appId,
-                appToken,
             };
         } catch (error) {
             console.error('Error getting auth data:', error);
@@ -49,9 +51,8 @@ export const storage = {
     clearAuthData: () => {
         try {
             localStorage.removeItem(STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY);
             localStorage.removeItem(STORAGE_KEYS.USER);
-            localStorage.removeItem(STORAGE_KEYS.APP_ID);
-            localStorage.removeItem(STORAGE_KEYS.APP_TOKEN);
         } catch (error) {
             console.error('Error clearing auth data:', error);
             throw new Error('Failed to clear authentication data');
@@ -62,7 +63,14 @@ export const storage = {
     isAuthenticated: () => {
         try {
             const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-            return !!token;
+            const tokenExpiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
+
+            if (!token || !tokenExpiry) {
+                return false;
+            }
+
+            // Check if token is expired
+            return new Date(tokenExpiry) > new Date();
         } catch (error) {
             console.error('Error checking authentication:', error);
             return false;

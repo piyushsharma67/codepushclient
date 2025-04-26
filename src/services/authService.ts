@@ -8,14 +8,16 @@ export interface LoginCredentials {
 }
 
 export interface User {
-    id: string;
+    id: number;
     email: string;
-    app_id: string;
-    token: string;
+    username: string;
+    company_name: string;
+    created_at: string;
 }
 
 export interface LoginResponse {
     token: string;
+    expires_at: string;
     user: User;
 }
 
@@ -26,15 +28,21 @@ export interface RegisterCredentials {
 }
 
 export interface RegisterResponse {
-    message: string;
-    app_id: string;
+    expires_at: string;
     token: string;
+    user: {
+        company_name: string;
+        created_at: string;
+        email: string;
+        id: number;
+        username: string;
+    };
 }
 
 export const authService = {
     login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/v2/auth/login`, credentials);
+            const response = await axios.post(`${API_BASE_URL}/api/v1/auth/login`, credentials);
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -46,7 +54,7 @@ export const authService = {
 
     register: async (credentials: RegisterCredentials): Promise<RegisterResponse> => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/auth/register`, credentials);
+            const response = await axios.post(`${API_BASE_URL}/api/v1/auth/register`, credentials);
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {

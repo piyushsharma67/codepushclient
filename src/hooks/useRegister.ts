@@ -35,16 +35,11 @@ export const useRegister = (): [RegisterState, RegisterActions] => {
             const credentials: RegisterCredentials = { username, email, password };
             const response = await authService.register(credentials);
 
-            // Save registration data
-            storage.saveAuthData(response.token, {
-                id: '', // The server will provide this after login
-                email,
-                app_id: response.app_id,
-                token: response.token
-            });
+            // Save registration data with token and expiration
+            storage.saveAuthData(response.token, response.expires_at, response.user);
 
-            // Navigate to home page on successful registration
-            navigate('/');
+            // Navigate to apps page on successful registration
+            navigate('/apps');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
         } finally {

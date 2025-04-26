@@ -33,10 +33,10 @@ export const useLogin = (): [LoginState, LoginActions] => {
             const response = await authService.login(credentials);
 
             // Save authentication data using storage utility
-            storage.saveAuthData(response.token, response.user);
+            storage.saveAuthData(response.token, response.expires_at, response.user);
 
-            // Navigate to home page on successful login
-            navigate('/');
+            // Navigate to apps page on successful login
+            navigate('/apps');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Invalid credentials. Please try again.');
         } finally {

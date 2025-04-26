@@ -2,8 +2,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Landing from './pages/Landing';
+import Apps from './pages/Apps';
 import Header from './components/Header';
 import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
+import { storage } from './utils/storage';
 
 const theme = createTheme({
   palette: {
@@ -18,6 +20,8 @@ const theme = createTheme({
 });
 
 function App() {
+  const isAuthenticated = storage.isAuthenticated();
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -29,6 +33,16 @@ function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route
+                path="/apps"
+                element={
+                  isAuthenticated ? (
+                    <Apps />
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
             </Routes>
           </Box>
         </Box>
